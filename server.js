@@ -32,8 +32,8 @@ app.post("/api/login", (req, res) => {
 // ✅ SERVE FRONTEND (VERY IMPORTANT)
 app.use(express.static(path.join(__dirname, "/")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 
