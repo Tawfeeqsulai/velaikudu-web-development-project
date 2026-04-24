@@ -18,6 +18,29 @@ function getIcon(name) {
   return companyIcons[h % companyIcons.length];
 }
 
+async function postJob(data) {
+  try {
+    const res = await fetch(`${API}/jobs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "securetoken123" // 🔥 IMPORTANT
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    console.log("POST RESULT:", result);
+
+    // reload jobs after posting
+    loadJobs();
+
+  } catch (err) {
+    console.error("POST ERROR:", err);
+  }
+}
+
 // ── LOAD JOBS ──────────────────────────────────────────────
 async function loadJobs() {
   const container = document.getElementById('jobs');
