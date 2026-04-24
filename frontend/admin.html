@@ -132,7 +132,8 @@
     document.getElementById('mobileMenu').classList.toggle('open');
   }
 
-  const API = 'https://velaikudu.onrender.com/api';
+  const API = "https://velaikudu.onrender.com/api/";
+  fetch(API + "jobs")
   let editId = null;
 
   // ➕ ADD / ✏️ UPDATE JOB
