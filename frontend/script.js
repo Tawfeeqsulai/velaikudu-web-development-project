@@ -1,38 +1,31 @@
-console.log("SCRIPT UPDATED WORKING");
-
 // ============================================================
-// JOBNEST — Frontend Script (FIXED)
+// JOBNEST — Frontend Script (LIVE FIXED)
 // ============================================================
 
-const API = "https://velaikudu.onrender.com/api";
+const API = 'https://velaikudu.onrender.com/api'; // ✅ LIVE URL
 
 let allJobs = [];
 let activeCategory = 'all';
 let searchTerm = '';
 
-// ── EMOJI ICONS ─────────────────────────────────────────────
+// ── EMOJI ICONS ──────────────────────────────
 const companyIcons = ['🏢','💼','🚀','🌐','💡','🔬','📱','🎯','🏗️','⚡'];
 
-function getIcon(name = "") {
+function getIcon(name) {
   let h = 0;
-  for (let c of name) {
+  for (let c of name || "") {
     h = (h * 31 + c.charCodeAt(0)) & 0xffff;
   }
   return companyIcons[h % companyIcons.length];
 }
 
-// ── LOAD JOBS ───────────────────────────────────────────────
+// ── LOAD JOBS (FIXED) ────────────────────────
 async function loadJobs() {
   const container = document.getElementById('jobs');
   if (!container) return;
 
-  container.innerHTML = `<p style="text-align:center;">Loading jobs...</p>`;
-
   try {
-    const res = await fetch(`${API}/jobs`);
-
-    if (!res.ok) throw new Error("API error");
-
+    const res = await fetch(`${API}/jobs?nocache=${Date.now()}`); // ✅ no cache
     allJobs = await res.json();
 
     const totalEl = document.getElementById('totalJobs');
@@ -41,18 +34,39 @@ async function loadJobs() {
     renderJobs();
 
   } catch (err) {
-    console.error("❌ Backend error:", err);
-
+    console.error('Failed to load jobs:', err);
     container.innerHTML = `
       <div class="empty-state">
         <h3>⚠️ Backend Not Reachable</h3>
         <p>Check if your Render backend is running.</p>
-      </div>
-    `;
+      </div>`;
   }
 }
 
-// ── RENDER JOBS ─────────────────────────────────────────────
+// ── POST JOB (🔥 MAIN FIX) ───────────────────
+async function postJob(data) {
+  try {
+    const res = await fetch(`${API}/jobs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "securetoken123"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    console.log("POST SUCCESS:", result);
+
+    // ✅ IMPORTANT FIX → reload jobs after posting
+    await loadJobs();
+
+  } catch (err) {
+    console.error("POST ERROR:", err);
+  }
+}
+
+// ── RENDER JOBS ──────────────────────────────
 function renderJobs() {
   const container = document.getElementById('jobs');
   if (!container) return;
@@ -71,103 +85,48 @@ function renderJobs() {
     return matchSearch && matchCat;
   });
 
-  const sort = document.getElementById('sortSelect')?.value;
-
-  if (sort === 'company') {
-    filtered.sort((a, b) => (a.company || "").localeCompare(b.company || ""));
-  }
-
-  if (sort === 'salary') {
-    filtered.sort((a, b) => {
-      const aNum = parseFloat((a.salary || '').replace(/[^\d.]/g, '')) || 0;
-      const bNum = parseFloat((b.salary || '').replace(/[^\d.]/g, '')) || 0;
-      return bNum - aNum;
-    });
-  }
-
   if (!filtered.length) {
     container.innerHTML = `
       <div class="empty-state">
         <h3>No Jobs Found</h3>
-        <p>Try a different search.</p>
-      </div>
-    `;
+        <p>Post your first job above.</p>
+      </div>`;
     return;
   }
 
   container.innerHTML = filtered.map((job, i) => `
-    <div class="job-card" onclick='openModal(${JSON.stringify(job)})'>
+    <div class="job-card">
       <div class="job-card-header">
         <div class="job-logo">${getIcon(job.company)}</div>
-        <div class="job-card-title">
+        <div>
           <h3>${escHtml(job.title)}</h3>
           <p>${escHtml(job.company)}</p>
         </div>
       </div>
-
-      <div class="job-card-meta">
-        ${job.location ? `<span>📍 ${escHtml(job.location)}</span>` : ''}
-        ${job.salary ? `<span>💰 ${escHtml(job.salary)}</span>` : ''}
-      </div>
-
-      <p>${escHtml(job.description || '')}</p>
+      <p>${escHtml(job.location)}</p>
+      <p>${escHtml(job.salary)}</p>
+      <p>${escHtml(job.description)}</p>
     </div>
   `).join('');
 }
 
-// ── FILTER ─────────────────────────────────────────────────
+// ── SEARCH ───────────────────────────────────
 function filterJobs() {
   searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
   renderJobs();
 }
 
-function filterCategory(cat, btn) {
-  activeCategory = cat;
-
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-
-  renderJobs();
-}
-
-// ── MODAL ──────────────────────────────────────────────────
-function openModal(job) {
-  const modal = document.getElementById('jobModal');
-  const data = document.getElementById('modalData');
-
-  if (!modal || !data) return;
-
-  data.innerHTML = `
-    <h2>${escHtml(job.title)}</h2>
-    <p><strong>${escHtml(job.company)}</strong></p>
-    <p>${escHtml(job.location || '')}</p>
-    <p>${escHtml(job.salary || '')}</p>
-    <p>${escHtml(job.description || '')}</p>
-    <p><strong>Contact:</strong> ${escHtml(job.contact || 'N/A')}</p>
-  `;
-
-  modal.classList.add('active');
-}
-
-// ── CLOSE MODAL ────────────────────────────────────────────
-function closeModal() {
-  document.getElementById('jobModal')?.classList.remove('active');
-}
-
-// ── ESC CLOSE ──────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-});
-
-// ── SAFE HTML ──────────────────────────────────────────────
+// ── HTML ESCAPE ──────────────────────────────
 function escHtml(str) {
-  return String(str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
-// ── INIT ───────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+// ── INIT ─────────────────────────────────────
+if (document.getElementById('jobs')) {
   loadJobs();
-});
+}
