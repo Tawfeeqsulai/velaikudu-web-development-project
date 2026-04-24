@@ -5,7 +5,6 @@ const path = require("path");
 
 const app = express();
 
-const path = require("path");
 
 // correct path to frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
