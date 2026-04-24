@@ -5,6 +5,16 @@ const path = require("path");
 
 const app = express();
 
+const path = require("path");
+
+// correct path to frontend
+app.use(express.static(path.join(__dirname, "../frontend")));
+
+// root route
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend", "index.html"));
+});
+
 // MIDDLEWARE
 app.use(cors());
 app.use(express.json());
