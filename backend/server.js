@@ -15,7 +15,7 @@ mongoose.connect("mongodb+srv://admin:8807696646@cluster0.regjvxo.mongodb.net/jo
 .catch(err => console.log(err));
 
 // ✅ ROUTES
-const jobRoutes = require("./routes/jobRoutes");
+const jobRoutes = require("./jobRoutes");
 app.use("/api/jobs", jobRoutes);
 
 // ✅ LOGIN ROUTE
@@ -35,6 +35,7 @@ app.use(express.static(path.join(__dirname, "/")));
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
+
 
 // ✅ PORT FIX FOR RENDER
 const PORT = process.env.PORT || 5000;
