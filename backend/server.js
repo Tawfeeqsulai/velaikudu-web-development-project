@@ -15,7 +15,7 @@ mongoose.connect("mongodb+srv://admin:8807696646@cluster0.regjvxo.mongodb.net/jo
 .catch(err => console.log(err));
 
 // ✅ ROUTES
-const jobRoutes = require("./jobRoutes");
+const jobRoutes = require("./routes/jobRoutes");
 app.use("/api/jobs", jobRoutes);
 
 // ✅ LOGIN ROUTE
