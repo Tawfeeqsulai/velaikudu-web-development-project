@@ -1,21 +1,24 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
+
+// MIDDLEWARE
 app.use(cors());
 app.use(express.json());
 
+// ✅ CONNECT MONGODB
 mongoose.connect("mongodb+srv://admin:8807696646@cluster0.regjvxo.mongodb.net/jobportal")
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
 
-const jobRoutes = require("./routes/jobRoutes");
+// ✅ ROUTES
+const jobRoutes = require("./jobRoutes");
 app.use("/api/jobs", jobRoutes);
 
-app.listen(5000, () => console.log("Server running on port 5000"));
-
-// SIMPLE LOGIN (HARDCODED)
+// ✅ LOGIN ROUTE
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -24,4 +27,19 @@ app.post("/api/login", (req, res) => {
   } else {
     res.json({ success: false });
   }
+});
+
+// ✅ SERVE FRONTEND (VERY IMPORTANT)
+app.use(express.static(path.join(__dirname, "/")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+
+// ✅ PORT FIX FOR RENDER
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
 });
