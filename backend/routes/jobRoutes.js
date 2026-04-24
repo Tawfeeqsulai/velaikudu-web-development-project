@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Job = require("./Job");
+const Job = require("./job");
 
 // 🔐 AUTH MIDDLEWARE
 function auth(req, res, next) {
