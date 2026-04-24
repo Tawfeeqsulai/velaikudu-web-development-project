@@ -1,8 +1,10 @@
+console.log("SCRIPT UPDATED WORKING");
+
 // ============================================================
 // JOBNEST — Frontend Script
 // ============================================================
 
-const API = 'https://velaikudu.onrender.com/api/';
+const API = 'https://velaikudu.onrender.com/api';
 
 let allJobs = [];
 let activeCategory = 'all';
