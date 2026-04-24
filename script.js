@@ -2,7 +2,7 @@
 // JOBNEST — Frontend Script
 // ============================================================
 
-const API = 'http://velaikudu.onrender.com/api';
+const API = 'https://velaikudu.onrender.com/api/';
 
 let allJobs = [];
 let activeCategory = 'all';
