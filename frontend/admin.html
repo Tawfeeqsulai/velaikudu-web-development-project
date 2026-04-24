@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Velaikudu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-page-body">
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">Velai<span>kudu</span></a>
+    <div class="nav-links">
+      <a href="index.html">← Back to Portal</a>
+      <a href="login.html" id="logoutBtn" class="nav-admin">Log Out</a>
+    </div>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">← Back to Portal</a>
+    <a href="login.html">Log Out</a>
+  </div>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <div style="max-width:900px;margin:0 auto;">
+      <h1>🔐 Admin Panel</h1>
+      <p>Manage all job listings — add, edit, or remove opportunities from JobNest.</p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-layout">
+
+    <!-- ADD / EDIT FORM -->
+    <div class="form-card" id="formCard">
+      <div class="form-card-header">
+        <h2 id="formTitle">Post a New Job</h2>
+        <p id="formSubtitle">Fill in the details below. Fields marked * are required.</p>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Job Title *</label>
+          <input id="title" placeholder="e.g. Senior Product Designer">
+        </div>
+        <div class="field">
+          <label>Company *</label>
+          <input id="company" placeholder="e.g. Acme Corp">
+        </div>
+        <div class="field">
+          <label>Location *</label>
+          <input id="location" placeholder="e.g. Bangalore / Remote">
+        </div>
+        <div class="field">
+          <label>Salary *</label>
+          <input id="salary" placeholder="e.g. ₹12–18 LPA">
+        </div>
+        <div class="field full">
+          <label>Job Description</label>
+          <textarea id="description" placeholder="Describe the role, responsibilities, and requirements…"></textarea>
+        </div>
+        <div class="field">
+          <label>Benefits</label>
+          <input id="benefits" placeholder="e.g. Health insurance, WFH, ESOPs">
+        </div>
+        <div class="field">
+          <label>Contact</label>
+          <input id="contact" placeholder="e.g. 1234567890 or example@gmail.com">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" onclick="addJob()" id="submitBtn">➕ Post Job</button>
+        <button class="btn-secondary" onclick="resetForm()" id="cancelBtn" style="display:none;">✕ Cancel Edit</button>
+      </div>
+    </div>
+
+    <!-- MANAGE JOBS -->
+    <div>
+      <div class="manage-header">
+        <h2>📋 Manage Listings</h2>
+        <span class="jobs-count" id="jobsCount">Loading…</span>
+      </div>
+      <div id="adminJobs">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading listings…</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  const token = localStorage.getItem('token');
+  const loginTime = localStorage.getItem('loginTime');
+
+  // 🔐 AUTH + SESSION CHECK
+  if (!token || token !== 'securetoken123') {
+    alert('🔐 Access denied. Please log in.');
+    window.location.href = 'login.html';
+  }
+
+  if (loginTime) {
+    const now = Date.now();
+    const diff = now - loginTime;
+
+    // ⏳ 30 min expiry
+    if (diff > 30 * 60 * 1000) {
+      alert('⏳ Session expired. Please login again.');
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+
+  // 🔓 LOGOUT
+  document.getElementById('logoutBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  function toggleMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  }
+
+  const API = 'http://localhost:5000/api';
+  let editId = null;
+
+  // ➕ ADD / ✏️ UPDATE JOB
+  async function addJob() {
+    const fields = ['title','company','location','salary'];
+
+    for (const f of fields) {
+      if (!document.getElementById(f).value.trim()) {
+        showToast('⚠️ Please fill all required fields', 'warn');
+        document.getElementById(f).focus();
+        return;
+      }
+    }
+
+    const job = {
+      title:       document.getElementById('title').value.trim(),
+      company:     document.getElementById('company').value.trim(),
+      location:    document.getElementById('location').value.trim(),
+      salary:      document.getElementById('salary').value.trim(),
+      description: document.getElementById('description').value.trim(),
+      benefits:    document.getElementById('benefits').value.trim(),
+      contact:     document.getElementById('contact').value.trim()
+    };
+
+    const url    = editId ? `${API}/jobs/${editId}` : `${API}/jobs`;
+    const method = editId ? 'PUT' : 'POST';
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = '…';
+    btn.disabled = true;
+
+    try {
+      await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify(job)
+      });
+
+      showToast(editId ? '✏️ Job updated!' : '✅ Job posted!', 'success');
+      resetForm();
+      loadAdminJobs();
+
+    } catch {
+      showToast('⚠️ Server error. Backend running?', 'warn');
+    } finally {
+      btn.textContent = editId ? '✏️ Update Job' : '➕ Post Job';
+      btn.disabled = false;
+    }
+  }
+
+  // 🔄 RESET FORM
+  function resetForm() {
+    editId = null;
+
+    ['title','company','location','salary','description','benefits','contact']
+      .forEach(id => document.getElementById(id).value = '');
+
+    document.getElementById('formTitle').textContent = 'Post a New Job';
+    document.getElementById('formSubtitle').textContent = 'Fill in the details below. Fields marked * are required.';
+    document.getElementById('submitBtn').textContent = '➕ Post Job';
+    document.getElementById('cancelBtn').style.display = 'none';
+
+    document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // 📋 LOAD JOBS
+  async function loadAdminJobs() {
+    const container = document.getElementById('adminJobs');
+    const countEl   = document.getElementById('jobsCount');
+
+    try {
+      const res  = await fetch(`${API}/jobs`);
+      const jobs = await res.json();
+
+      if (countEl) {
+        countEl.textContent = `${jobs.length} listing${jobs.length !== 1 ? 's' : ''}`;
+      }
+
+      if (!jobs.length) {
+        container.innerHTML = `<div class="empty-state"><h3>No Listings Yet</h3><p>Post your first job above.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = jobs.map(job => `
+        <div class="admin-job-card">
+          <div class="admin-job-info">
+            <h3>${escHtml(job.title)}</h3>
+            <p>${escHtml(job.company)} · ${escHtml(job.location)} · ${escHtml(job.salary)}</p>
+          </div>
+          <div class="admin-job-actions">
+            <button class="btn-edit" onclick='fillEdit(${JSON.stringify(job)})'>✏️ Edit</button>
+            <button class="btn-delete" onclick="deleteJob('${job._id}')">❌ Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+    } catch {
+      container.innerHTML = `<div class="empty-state"><h3>⚠️ Connection Error</h3><p>Backend not reachable.</p></div>`;
+    }
+  }
+
+  // ❌ DELETE
+  async function deleteJob(id) {
+    if (!confirm('Delete this job?')) return;
+
+    await fetch(`${API}/jobs/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': token }
+    });
+
+    loadAdminJobs();
+  }
+
+  // ✏️ EDIT
+  function fillEdit(job) {
+    editId = job._id;
+
+    document.getElementById('title').value       = job.title || '';
+    document.getElementById('company').value     = job.company || '';
+    document.getElementById('location').value    = job.location || '';
+    document.getElementById('salary').value      = job.salary || '';
+    document.getElementById('description').value = job.description || '';
+    document.getElementById('benefits').value    = job.benefits || '';
+    document.getElementById('contact').value     = job.contact || '';
+
+    document.getElementById('formTitle').textContent = 'Edit Job Listing';
+    document.getElementById('submitBtn').textContent = '✏️ Update Job';
+    document.getElementById('cancelBtn').style.display = 'inline-block';
+
+    document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // 🔔 TOAST
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.textContent = msg;
+
+    t.style.cssText = `
+      position:fixed; bottom:20px; right:20px;
+      background:${type === 'success' ? '#1a3a2a' : '#3a1a1a'};
+      color:${type === 'success' ? '#4ade80' : '#f87171'};
+      padding:12px 18px;
+      border-radius:8px;
+      z-index:9999;
+    `;
+
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  function escHtml(str) {
+    return str ? str.replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+  }
+
+  loadAdminJobs();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velaikudu — Find Your Next Role</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">Velai<span>kudu</span></a>
+    <div class="nav-links">
+      <a href="#jobs">Browse Jobs</a>
+      <a href="#how">How It Works</a>
+      <a href="admin.html" class="nav-admin">Admin Panel</a>
+    </div>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#jobs" onclick="toggleMenu()">Browse Jobs</a>
+    <a href="#how" onclick="toggleMenu()">How It Works</a>
+    <a href="admin.html">Admin Panel</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-badge">🚀 New opportunities every day</div>
+      <h1 class="hero-title">Find Work<br>That <em>Moves</em><br>You Forward</h1>
+      <p class="hero-sub">Thousands of premium roles across tech, design, finance, and beyond. Your next chapter starts here.</p>
+      <!-- <div class="hero-search">
+        <input type="text" id="searchInput" placeholder="Job title, company, or keyword…" oninput="filterJobs()">
+        <button onclick="scrollToJobs()">Search Jobs</button>
+      </div> -->
+      <div class="hero-stats">
+        <div class="stat"><span id="totalJobs">—</span><small>Live Roles</small></div>
+        <!-- <div class="stat-divider"></div> -->
+        <!-- <div class="stat"><span>2.4k+</span><small>Companies</small></div> -->
+        <!-- <div class="stat-divider"></div> -->
+        <div class="stat"><span>98%</span><small>Satisfaction</small></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="float-card fc1">
+        <div class="fc-dot green"></div>
+        <div>
+          <p class="fc-title">UX Designer</p>
+          <p class="fc-sub">Figma · Remote</p>
+        </div>
+        <p class="fc-sal">₹12L/yr</p>
+      </div>
+      <div class="float-card fc2">
+        <div class="fc-dot blue"></div>
+        <div>
+          <p class="fc-title">Backend Engineer</p>
+          <p class="fc-sub">Node.js · Hybrid</p>
+        </div>
+        <p class="fc-sal">₹18L/yr</p>
+      </div>
+      <div class="float-card fc3">
+        <div class="fc-dot amber"></div>
+        <div>
+          <p class="fc-title">Product Manager</p>
+          <p class="fc-sub">SaaS · On-site</p>
+        </div>
+        <p class="fc-sal">₹22L/yr</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN SHORTCUT BANNER -->
+  <div class="admin-banner">
+    <div class="admin-banner-inner">
+      <div class="admin-banner-text">
+        <span class="admin-banner-icon">🔐</span>
+        <div>
+          <strong>Recruiter or Admin?</strong>
+          <p>Post and manage job listings from the Admin Panel</p>
+        </div>
+      </div>
+      <a href="admin.html" class="btn-admin-go">Go to Admin Panel →</a>
+    </div>
+  </div>
+
+  <!-- CATEGORY PILLS
+  <section class="categories">
+    <div class="section-inner">
+      <p class="section-label">Browse by Category</p>
+      <div class="pill-row">
+        <button class="pill active" onclick="filterCategory('all', this)">All Jobs</button>
+        <button class="pill" onclick="filterCategory('tech', this)">💻 Tech</button>
+        <button class="pill" onclick="filterCategory('design', this)">🎨 Design</button>
+        <button class="pill" onclick="filterCategory('finance', this)">📊 Finance</button>
+        <button class="pill" onclick="filterCategory('marketing', this)">📣 Marketing</button>
+        <button class="pill" onclick="filterCategory('remote', this)">🌍 Remote</button>
+      </div>
+    </div>
+  </section> -->
+
+  <!-- JOB LISTINGS -->
+  <section class="jobs-section" id="jobs">
+    <div class="section-inner">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Open Positions</p>
+          <h2 class="section-title">Latest Opportunities</h2>
+        </div>
+        <div class="sort-wrap">
+          <select id="sortSelect" onchange="sortJobs()">
+            <option value="newest">Newest First</option>
+            <option value="salary">By Salary</option>
+            <option value="company">By Company</option>
+          </select>
+        </div>
+      </div>
+      <div id="jobs" class="jobs-grid">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading opportunities…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="how">
+    <div class="section-inner">
+      <p class="section-label">Process</p>
+      <h2 class="section-title">How velaikudu Works</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <h3>Browse Roles</h3>
+          <p>Explore curated listings from top companies across all industries and locations.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <h3>View Details</h3>
+          <p>Click any card to see full job description, benefits, salary range, and contact info.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <h3>Apply Direct</h3>
+          <p>Reach out directly via the contact provided — no middlemen, no signup walls.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">Velai<span>kudu</span></a>
+        <p>Connecting talent with opportunity, one listing at a time.</p>
+      </div>
+      <div class="footer-links">
+        <strong>Quick Links</strong>
+        <a href="#jobs">Browse Jobs</a>
+        <a href="#how">How It Works</a>
+        <a href="admin.html">Admin Panel</a>
+        <a href="login.html">Recruiter Login</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Velaikudu. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- JOB MODAL -->
+  <div id="jobModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modalData"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    }
+    function scrollToJobs() {
+      document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
