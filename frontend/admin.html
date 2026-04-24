@@ -133,7 +133,6 @@
   }
 
   const API = "https://velaikudu.onrender.com/api/";
-  fetch(API + "jobs")
   let editId = null;
 
   // ➕ ADD / ✏️ UPDATE JOB
@@ -208,7 +207,7 @@
     const countEl   = document.getElementById('jobsCount');
 
     try {
-      const res  = await fetch(`${API}/jobs`);
+      const res  = await fetch(API + "jobs");
       const jobs = await res.json();
 
       if (countEl) {
@@ -242,10 +241,10 @@
   async function deleteJob(id) {
     if (!confirm('Delete this job?')) return;
 
-    await fetch(`${API}/jobs/${id}`, {
+    fetch(API + "jobs/" + id), {
       method: 'DELETE',
       headers: { 'Authorization': token }
-    });
+    };
 
     loadAdminJobs();
   }
