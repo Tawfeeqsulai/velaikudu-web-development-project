@@ -9,6 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// serve frontend
+app.use(express.static(path.join(__dirname, "frontend")));
+
+// fallback route (for index.html)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend", "index.html"));
+});
+
 // ✅ CONNECT MONGODB
 mongoose.connect("mongodb+srv://admin:8807696646@cluster0.regjvxo.mongodb.net/jobportal")
 .then(() => console.log("MongoDB Connected"))
