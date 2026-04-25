@@ -490,12 +490,23 @@ body {
 }
 .job-card:hover::before { opacity: 1; }
 
-.job-card-header {
+.job-card-header > div {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
 }
+
+.job-card-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.job-card-header p {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 14px;
+}
+
 .job-logo {
   width: 48px; height: 48px;
   border-radius: 10px;
