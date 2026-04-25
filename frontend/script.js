@@ -1,8 +1,9 @@
 // ============================================================
-// JOBNEST — Frontend Script (LIVE FIXED)
+// JOBNEST — Frontend Script (FINAL WORKING)
 // ============================================================
 
-const API = 'https://velaikudu.onrender.com/api/'; // ✅ LIVE URL
+// 🔥 FIXED API (NO trailing slash)
+const API = 'https://velaikudu.onrender.com/api';
 
 let allJobs = [];
 let activeCategory = 'all';
@@ -25,8 +26,10 @@ async function loadJobs() {
   if (!container) return;
 
   try {
-    const res = await fetch(`${API}/jobs?nocache=${Date.now()}`); // ✅ no cache
-    allJobs = await res.json();
+    const res = await fetch(`${API}/jobs?nocache=${Date.now()}`);
+    const data = await res.json();
+
+    allJobs = data;
 
     const totalEl = document.getElementById('totalJobs');
     if (totalEl) totalEl.textContent = allJobs.length + '+';
@@ -43,7 +46,7 @@ async function loadJobs() {
   }
 }
 
-// ── POST JOB (🔥 MAIN FIX) ───────────────────
+// ── POST JOB (FIXED) ─────────────────────────
 async function postJob(data) {
   try {
     const res = await fetch(`${API}/jobs`, {
@@ -58,11 +61,12 @@ async function postJob(data) {
     const result = await res.json();
     console.log("POST SUCCESS:", result);
 
-    // ✅ IMPORTANT FIX → reload jobs after posting
+    // 🔥 FORCE REFRESH
     await loadJobs();
 
   } catch (err) {
     console.error("POST ERROR:", err);
+    alert("Failed to post job");
   }
 }
 
@@ -94,7 +98,7 @@ function renderJobs() {
     return;
   }
 
-  container.innerHTML = filtered.map((job, i) => `
+  container.innerHTML = filtered.map(job => `
     <div class="job-card">
       <div class="job-card-header">
         <div class="job-logo">${getIcon(job.company)}</div>
