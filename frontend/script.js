@@ -26,8 +26,13 @@ async function loadJobs() {
   if (!container) return;
 
   try {
-    const res = await fetch(`${API}/jobs?nocache=${Date.now()}`);
+    const res = await fetch(`${API}/jobs`, {
+      cache: "no-store"
+    });
+
     const data = await res.json();
+
+    console.log("LOADED JOBS:", data); // 👈 DEBUG
 
     allJobs = data;
 
@@ -38,11 +43,6 @@ async function loadJobs() {
 
   } catch (err) {
     console.error('Failed to load jobs:', err);
-    container.innerHTML = `
-      <div class="empty-state">
-        <h3>⚠️ Backend Not Reachable</h3>
-        <p>Check if your Render backend is running.</p>
-      </div>`;
   }
 }
 
@@ -61,12 +61,13 @@ async function postJob(data) {
     const result = await res.json();
     console.log("POST SUCCESS:", result);
 
-    // 🔥 FORCE REFRESH
-    await loadJobs();
+    // 🔥 FIX 1: small delay (Render DB sync)
+    setTimeout(async () => {
+      await loadJobs();
+    }, 500);
 
   } catch (err) {
     console.error("POST ERROR:", err);
-    alert("Failed to post job");
   }
 }
 
