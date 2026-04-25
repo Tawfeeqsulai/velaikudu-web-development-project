@@ -2,7 +2,7 @@
 // JOBNEST — Frontend Script (LIVE FIXED)
 // ============================================================
 
-const API = 'https://velaikudu.onrender.com/api'; // ✅ LIVE URL
+const API = 'https://velaikudu.onrender.com/api/'; // ✅ LIVE URL
 
 let allJobs = [];
 let activeCategory = 'all';
