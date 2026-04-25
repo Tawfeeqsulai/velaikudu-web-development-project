@@ -125,7 +125,7 @@ function openModal(job) {
   const data = document.getElementById('modalData');
   if (!modal || !data) return;
 
-  data.innerHTML = `
+data.innerHTML = `
     <p class="modal-job-title">${escHtml(job.title)}</p>
     <p class="modal-company">${escHtml(job.company)}</p>
     <div class="modal-tags">
@@ -148,7 +148,7 @@ function openModal(job) {
         <p class="modal-section-label" style="margin-bottom:4px;">Contact</p>
         <strong>${escHtml(job.contact || 'See company website')}</strong>
       </div>
-      ${job.contact ? `<a class="modal-apply" href="mailto:${escHtml(job.contact)}">Apply Now →</a>` : ''}
+      ${job.contact ? getApplyLink(job.contact) : ''}
     </div>
   `;
 
@@ -156,6 +156,22 @@ function openModal(job) {
   document.body.style.overflow = 'hidden';
 }
 
+function getApplyLink(contact) {
+  contact = contact.trim();
+
+  // 📧 Check email
+  if (contact.includes("@")) {
+    return `<a class="modal-apply" href="mailto:${escHtml(contact)}">Apply via Email</a>`;
+  }
+
+  // 📞 Check phone (numbers only)
+  const phone = contact.replace(/\D/g, "");
+  if (phone.length >= 10) {
+    return `<a class="modal-apply" href="https://wa.me/${phone}" target="_blank">WhatsApp Apply</a>`;
+  }
+
+  return "";
+}
 function closeModal(e) {
   if (e && e.target !== document.getElementById('jobModal')) return;
   document.getElementById('jobModal')?.classList.remove('active');
