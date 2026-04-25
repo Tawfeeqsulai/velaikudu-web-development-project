@@ -132,7 +132,7 @@
     document.getElementById('mobileMenu').classList.toggle('open');
   }
 
-  const API = "https://velaikudu.onrender.com/api/";
+  const API = "https://velaikudu.onrender.com/api";
   let editId = null;
 
   // ➕ ADD / ✏️ UPDATE JOB
@@ -166,13 +166,18 @@
 
     try {
       await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token
-        },
-        body: JSON.stringify(job)
-      });
+  method,
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': token
+  },
+  body: JSON.stringify(job)
+});
+
+// 🔥 ADD THIS
+setTimeout(() => {
+  loadAdminJobs();
+}, 300);
 
       showToast(editId ? '✏️ Job updated!' : '✅ Job posted!', 'success');
       resetForm();
@@ -207,7 +212,7 @@
     const countEl   = document.getElementById('jobsCount');
 
     try {
-      const res  = await fetch(API + "jobs");
+      const res = await fetch(`${API}/jobs?nocache=${Date.now()}`);
       const jobs = await res.json();
 
       if (countEl) {
@@ -239,15 +244,15 @@
 
   // ❌ DELETE
   async function deleteJob(id) {
-    if (!confirm('Delete this job?')) return;
+  if (!confirm('Delete this job?')) return;
 
-    fetch(API + "jobs/" + id), {
-      method: 'DELETE',
-      headers: { 'Authorization': token }
-    };
+  await fetch(`${API}/jobs/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': token }
+  });
 
-    loadAdminJobs();
-  }
+  loadAdminJobs();
+}
 
   // ✏️ EDIT
   function fillEdit(job) {
