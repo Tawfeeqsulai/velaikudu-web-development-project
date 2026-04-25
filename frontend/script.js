@@ -1,77 +1,48 @@
 // ============================================================
-// JOBNEST — Frontend Script (FINAL WORKING)
+// JOBNEST — Frontend Script
 // ============================================================
 
-// 🔥 FIXED API (NO trailing slash)
 const API = 'https://velaikudu.onrender.com/api';
 
 let allJobs = [];
 let activeCategory = 'all';
 let searchTerm = '';
 
-// ── EMOJI ICONS ──────────────────────────────
+// ── EMOJI ICONS FOR COMPANIES ──────────────────────────────
 const companyIcons = ['🏢','💼','🚀','🌐','💡','🔬','📱','🎯','🏗️','⚡'];
-
 function getIcon(name) {
   let h = 0;
-  for (let c of name || "") {
-    h = (h * 31 + c.charCodeAt(0)) & 0xffff;
-  }
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
   return companyIcons[h % companyIcons.length];
 }
 
-// ── LOAD JOBS (FIXED) ────────────────────────
+// ── LOAD JOBS ──────────────────────────────────────────────
 async function loadJobs() {
   const container = document.getElementById('jobs');
   if (!container) return;
 
   try {
-    const res = await fetch(`${API}/jobs`, {
-      cache: "no-store"
-    });
+    const res = await fetch(`${API}/jobs?nocache=${Date.now()}`);
+    allJobs = await res.json();
 
-    const data = await res.json();
-
-    console.log("LOADED JOBS:", data); // 👈 DEBUG
-
-    allJobs = data;
-
+    // Update total count
     const totalEl = document.getElementById('totalJobs');
     if (totalEl) totalEl.textContent = allJobs.length + '+';
 
     renderJobs();
-
   } catch (err) {
     console.error('Failed to load jobs:', err);
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <h3>⚠️ Could Not Connect</h3>
+          <p>Make sure the backend server is running on port 5000.</p>
+        </div>`;
+    }
   }
 }
 
-// ── POST JOB (FIXED) ─────────────────────────
-async function postJob(data) {
-  try {
-    const res = await fetch(`${API}/jobs`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "securetoken123"
-      },
-      body: JSON.stringify(data)
-    });
-
-    const result = await res.json();
-    console.log("POST SUCCESS:", result);
-
-    // 🔥 FIX 1: small delay (Render DB sync)
-    setTimeout(async () => {
-      await loadJobs();
-    }, 500);
-
-  } catch (err) {
-    console.error("POST ERROR:", err);
-  }
-}
-
-// ── RENDER JOBS ──────────────────────────────
+// ── RENDER JOBS ────────────────────────────────────────────
 function renderJobs() {
   const container = document.getElementById('jobs');
   if (!container) return;
@@ -90,38 +61,116 @@ function renderJobs() {
     return matchSearch && matchCat;
   });
 
+  // Sort
+  const sort = document.getElementById('sortSelect')?.value;
+  if (sort === 'company') {
+    filtered.sort((a, b) => a.company?.localeCompare(b.company));
+  } else if (sort === 'salary') {
+    filtered.sort((a, b) => {
+      const aNum = parseFloat((a.salary || '').replace(/[^\d.]/g, '')) || 0;
+      const bNum = parseFloat((b.salary || '').replace(/[^\d.]/g, '')) || 0;
+      return bNum - aNum;
+    });
+  }
+
   if (!filtered.length) {
     container.innerHTML = `
       <div class="empty-state">
         <h3>No Jobs Found</h3>
-        <p>Post your first job above.</p>
+        <p>Try a different search term or category.</p>
       </div>`;
     return;
   }
 
-  container.innerHTML = filtered.map(job => `
-    <div class="job-card">
+  container.innerHTML = filtered.map((job, i) => `
+    <div class="job-card" onclick="openModal(${JSON.stringify(job).replace(/"/g, '&quot;')})">
       <div class="job-card-header">
-        <div class="job-logo">${getIcon(job.company)}</div>
-        <div>
+        <div class="job-logo">${getIcon(job.company || '')}</div>
+        <div class="job-card-title" style="flex:1;min-width:0;">
           <h3>${escHtml(job.title)}</h3>
-          <p>${escHtml(job.company)}</p>
+          <p class="job-company">${escHtml(job.company)}</p>
         </div>
       </div>
-      <p>${escHtml(job.location)}</p>
-      <p>${escHtml(job.salary)}</p>
-      <p>${escHtml(job.description)}</p>
+      <div class="job-card-meta">
+        ${job.location ? `<span class="meta-tag loc">📍 ${escHtml(job.location)}</span>` : ''}
+        ${job.salary ? `<span class="meta-tag sal">💰 ${escHtml(job.salary)}</span>` : ''}
+      </div>
+      ${job.description ? `<p class="job-desc">${escHtml(job.description)}</p>` : ''}
+      <div class="job-card-footer">
+        <button class="view-btn">View Details →</button>
+        <span class="job-idx">#${String(i + 1).padStart(3, '0')}</span>
+      </div>
     </div>
   `).join('');
 }
 
-// ── SEARCH ───────────────────────────────────
+// ── FILTER / SORT ──────────────────────────────────────────
 function filterJobs() {
-  searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  searchTerm = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
   renderJobs();
 }
 
-// ── HTML ESCAPE ──────────────────────────────
+function filterCategory(cat, btn) {
+  activeCategory = cat;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderJobs();
+}
+
+function sortJobs() { renderJobs(); }
+
+// ── MODAL ──────────────────────────────────────────────────
+function openModal(job) {
+  const modal = document.getElementById('jobModal');
+  const data = document.getElementById('modalData');
+  if (!modal || !data) return;
+
+  data.innerHTML = `
+    <p class="modal-job-title">${escHtml(job.title)}</p>
+    <p class="modal-company">${escHtml(job.company)}</p>
+    <div class="modal-tags">
+      ${job.location ? `<span class="meta-tag loc">📍 ${escHtml(job.location)}</span>` : ''}
+      ${job.salary ? `<span class="meta-tag sal">💰 ${escHtml(job.salary)}</span>` : ''}
+    </div>
+    ${job.description ? `
+      <div class="modal-section">
+        <p class="modal-section-label">About the Role</p>
+        <p>${escHtml(job.description)}</p>
+      </div>` : ''}
+    ${job.benefits ? `
+      <div class="modal-section">
+        <p class="modal-section-label">Benefits</p>
+        <p>${escHtml(job.benefits)}</p>
+      </div>` : ''}
+    <div class="modal-divider"></div>
+    <div class="modal-contact">
+      <div>
+        <p class="modal-section-label" style="margin-bottom:4px;">Contact</p>
+        <strong>${escHtml(job.contact || 'See company website')}</strong>
+      </div>
+      ${job.contact ? `<a class="modal-apply" href="mailto:${escHtml(job.contact)}">Apply Now →</a>` : ''}
+    </div>
+  `;
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('jobModal')) return;
+  document.getElementById('jobModal')?.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('jobModal')?.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+});
+
+// ── UTILITY ────────────────────────────────────────────────
 function escHtml(str) {
   if (!str) return '';
   return String(str)
@@ -131,7 +180,7 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// ── INIT ─────────────────────────────────────
+// ── INIT ───────────────────────────────────────────────────
 if (document.getElementById('jobs')) {
   loadJobs();
 }
